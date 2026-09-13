@@ -26,6 +26,19 @@ function initDisclaimerModal() {
 
 const CHANGELOG_DATA = [
   {
+    version: "Tauri-v1.2.0",
+    date: "2026-09-13",
+    items: [
+      { text: "添加自动更新支持", type: "add" },
+      { text: "添加一些帮助信息", type: "add" },
+      { text: "添加项目github地址链接按钮", type: "add" },
+      { text: "自动检测是否存在D盘并决定默认安装目录", type: "opt" },
+      { text: "修改配置的读取写入逻辑，添加更多配置的存储", type: "opt" },
+      { text: "移除自定义log目录功能，移除自定义数据目录功能", type: "breaking" },
+      { text: "移除设置项“默认安装目录”", type: "breaking" }
+    ]
+  },
+  {
     version: "Tauri-v1.1.0",
     date: "2026-08-31",
     items: [

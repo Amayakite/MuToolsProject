@@ -89,7 +89,7 @@ export async function checkForUpdate(manual = false) {
   }
 
   const latest = data.version;
-  const current = (await invoke("get_app_version").catch(() => null)) || "1.1.0";
+  const current = (await invoke("get_app_version").catch(() => null)) || "1.2.0";
 
   addLog(`当前版本: ${current}，最新版本: ${latest}`);
 
