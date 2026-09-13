@@ -10,6 +10,7 @@ import { initOptimizePage } from "./js/optimize.js";
 import { startMuMuAutoRefresh, onAutoRefreshSettingChanged, initMuMuInfoPage } from "./js/mumu-info.js";
 import { initHelpPage } from "./js/help.js";
 import { initAboutPage } from "./js/about.js";
+import { checkForUpdate, initUpdaterPage } from "./js/updater.js";
 
 const { invoke } = window.__TAURI__.core;
 
@@ -116,4 +117,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // 关于页面
   initAboutPage();
+
+  // 更新检测
+  initUpdaterPage();
+  try {
+    const saved = JSON.parse(localStorage.getItem("mutools_settings") || "{}");
+    if (saved.autoCheckUpdate) {
+      checkForUpdate(false);
+    }
+  } catch (e) {
+    console.error("自动更新检测解析设置失败:", e);
+  }
 });

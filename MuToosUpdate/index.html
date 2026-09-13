@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MuToolsServer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .unicode_image {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+        }
+        
+        .html-code {
+            font-size: 100px;
+            font-weight: 900;
+            color: #ff6b6b;
+            text-shadow: 3px 3px 0 #00000033;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #f8fafc;
+            font-weight: 600;
+        }
+        
+        .message {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #cbd5e1;
+            max-width: 500px;
+        }
+        
+        .links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .link {
+            padding: 12px 24px;
+            background: rgba(79, 195, 247, 0.15);
+            color: #4fc3f7;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(79, 195, 247, 0.3);
+        }
+        
+        .link:hover {
+            background: rgba(79, 195, 247, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .author {
+            margin-top: 40px;
+            color: #64748b;
+            font-size: 16px;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="unicode_image">🍂🌱🐾</div>
+    <div class="html-code"></div>
+    <h1>MuTools更新服务器</h1>
+    <p class="message">一站式 MuMu12 模拟器安装与优化工具</p>
+    
+    <div class="links">
+        <a href="https://space.bilibili.com/1716931378" class="link" target="_blank" rel="noopener noreferrer">B站主页</a>
+        <a href="https://github.com/pipicat613/MuToolsProject" class="link" target="_blank" rel="noopener noreferrer">github项目地址</a>
+        <a href="update_info.json" class="link" target="_blank" rel="noopener noreferrer">更新json文件</a>
+    </div>
+    
+    <p class="author">by pipicat613</p>
+</body>
+</html>

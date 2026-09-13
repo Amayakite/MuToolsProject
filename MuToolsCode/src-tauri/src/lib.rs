@@ -87,6 +87,8 @@ pub fn run() {
             config::save_auto_delete_installer,
             config::get_auto_delete_installer,
             config::get_default_install_dir,
+            config::get_app_version,
+            config::fetch_update_info,
             mumu_info::get_mumu_info,
             optimize::block_update_domains,
             optimize::unblock_update_domains,

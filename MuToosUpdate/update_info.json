@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "date": "2026-09-13",
+  "info": "test",
+  "updateUrl": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/pipicat613/MuToolsProject"
+    },
+    {
+      "name": "资源包",
+      "url": "https://github.com/pipicat613/MuToolsResource"
+    }
+  ]
+}

@@ -186,7 +186,7 @@ pub fn get_auto_delete_installer() -> Result<bool, String> {
     Ok(config.auto_delete_installer)
 }
 
-/// 检测默认安装目录：存在 D 盘则默认 D 盘，否则默认 C 盘
+/// 检测默认安装目录
 #[tauri::command]
 pub fn get_default_install_dir() -> Result<String, String> {
     let d_drive = std::path::Path::new("D:\\");
@@ -195,4 +195,30 @@ pub fn get_default_install_dir() -> Result<String, String> {
     } else {
         Ok("C:\\Program Files\\Netease\\MuMu".to_string())
     }
+}
+
+/// 获取应用版本号
+#[tauri::command]
+pub fn get_app_version(app: tauri::AppHandle) -> Result<String, String> {
+    Ok(app.package_info().version.to_string())
+}
+
+/// 通过后端请求更新信息文本 绕过前端 CORS 限制
+#[tauri::command]
+pub async fn fetch_update_info(url: String) -> Result<String, String> {
+    let client = reqwest::Client::builder()
+        .user_agent("MuTools")
+        .build()
+        .map_err(|e| format!("创建 HTTP 客户端失败: {}", e))?;
+    let resp = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("请求失败: {}", e))?;
+    if !resp.status().is_success() {
+        return Err(format!("HTTP {}", resp.status().as_u16()));
+    }
+    resp.text()
+        .await
+        .map_err(|e| format!("读取响应失败: {}", e))
 }

@@ -2,6 +2,7 @@
 import { showToast } from "./toast.js";
 import { addLog } from "./logger.js";
 import { onAutoRefreshSettingChanged } from "./mumu-info.js";
+import { DEFAULT_UPDATE_URL, checkForUpdate } from "./updater.js";
 const { invoke } = window.__TAURI__.core;
 
 export function loadSettings() {
@@ -11,6 +12,9 @@ export function loadSettings() {
       const settings = JSON.parse(saved);
       document.getElementById("settings-log-path").value = settings.logPath || "./log";
       document.getElementById("settings-download-path").value = settings.downloadPath || "./download";
+      document.getElementById("settings-update-url").value = settings.updateUrl || DEFAULT_UPDATE_URL;
+      document.getElementById("settings-auto-check-update").checked =
+        settings.autoCheckUpdate !== undefined ? settings.autoCheckUpdate : false;
 
       const dataDirMode = settings.dataDirMode || "appdata";
       const dataDirCustom = settings.dataDirCustom || "";
@@ -66,9 +70,12 @@ export function saveSettings() {
   const aria2Split = parseInt(document.getElementById("settings-aria2-split").value) || 5;
   const autoDeleteInstaller = document.getElementById("settings-auto-delete-installer").checked;
   const autoRefreshMuMu = document.getElementById("settings-auto-refresh-mumu").checked;
+  const updateUrl = document.getElementById("settings-update-url").value.trim();
+  const autoCheckUpdate = document.getElementById("settings-auto-check-update").checked;
   const settings = {
     logPath, downloadPath, dataDirMode, dataDirCustom,
-    adminElevation, aria2MaxConnections, aria2Split, autoDeleteInstaller, autoRefreshMuMu
+    adminElevation, aria2MaxConnections, aria2Split, autoDeleteInstaller, autoRefreshMuMu,
+    updateUrl, autoCheckUpdate
   };
   localStorage.setItem("mutools_settings", JSON.stringify(settings));
 
@@ -124,6 +131,11 @@ export async function loadAdminStatus() {
 
 export function initSettingsPage() {
   document.getElementById("btn-save-settings").addEventListener("click", saveSettings);
+
+  const btnCheckUpdate = document.getElementById("btn-check-update");
+  if (btnCheckUpdate) {
+    btnCheckUpdate.addEventListener("click", () => checkForUpdate(true));
+  }
 
   const dataDirModeSelect = document.getElementById("settings-data-dir-mode");
   if (dataDirModeSelect) {

@@ -306,6 +306,23 @@
             </label>
           </label>
         </div>
+        <div class="form-group">
+          <label for="settings-update-url">更新文件 URL</label>
+          <input type="text" id="settings-update-url" class="form-input"
+            value="https://mutools.netlify.app/update_info.json" />
+        </div>
+        <div class="form-group">
+          <label class="toggle-label">
+            <span class="toggle-text">自动检测更新</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settings-auto-check-update" />
+              <span class="toggle-slider"></span>
+            </label>
+          </label>
+        </div>
+        <div class="form-group">
+          <button id="btn-check-update" class="btn-secondary">检测更新</button>
+        </div>
         <div class="form-actions">
           <button id="btn-save-settings" class="btn-primary">保存设置</button>
         </div>
@@ -440,6 +457,29 @@
           </div>
           <div class="modal-footer">
             <button id="btn-changelog-close-bottom" class="btn-secondary">关闭</button>
+          </div>
+        </div>
+      </div>
+    <!-- 检测更新模态框 -->
+      <div id="modal-update-overlay" class="modal-overlay" style="display:none">
+        <div class="modal modal-about">
+          <div class="modal-header">
+            <h3 id="update-modal-title">发现新版本</h3>
+            <button id="btn-update-close" class="modal-close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="update-meta">
+              <span class="update-meta-label">最新版本：</span>
+              <span id="update-modal-version" class="update-meta-value"></span>
+              <span class="update-meta-label">发布时间：</span>
+              <span id="update-modal-date" class="update-meta-value"></span>
+            </div>
+            <div class="update-info" id="update-modal-info"></div>
+            <div class="update-links-title">更新地址</div>
+            <div class="update-links" id="update-modal-links"></div>
+          </div>
+          <div class="modal-footer">
+            <button id="btn-update-close-bottom" class="btn-secondary">关闭</button>
           </div>
         </div>
       </div>
