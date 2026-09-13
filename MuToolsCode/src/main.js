@@ -85,6 +85,8 @@ window.addEventListener("DOMContentLoaded", () => {
         saved.autoRefreshMuMu = autoRefreshCheckbox.checked;
         localStorage.setItem("mutools_settings", JSON.stringify(saved));
       } catch (e) {}
+      invoke("save_mumu_config", { autoRefreshMuMu: autoRefreshCheckbox.checked })
+        .catch(e => console.error("保存 MuMu 自动刷新配置失败:", e));
       onAutoRefreshSettingChanged();
     });
   }

@@ -10,17 +10,13 @@ export function loadSettings() {
     const saved = localStorage.getItem("mutools_settings");
     if (saved) {
       const settings = JSON.parse(saved);
-      document.getElementById("settings-log-path").value = settings.logPath || "./log";
-      document.getElementById("settings-download-path").value = settings.downloadPath || "./download";
+      document.getElementById("settings-download-path").value = settings.downloadPath || "";
       document.getElementById("settings-update-url").value = settings.updateUrl || DEFAULT_UPDATE_URL;
       document.getElementById("settings-auto-check-update").checked =
         settings.autoCheckUpdate !== undefined ? settings.autoCheckUpdate : false;
 
       const dataDirMode = settings.dataDirMode || "appdata";
-      const dataDirCustom = settings.dataDirCustom || "";
       document.getElementById("settings-data-dir-mode").value = dataDirMode;
-      document.getElementById("settings-data-dir-custom").value = dataDirCustom;
-      updateDataDirCustomUI();
 
       const adminElevation = settings.adminElevation !== undefined ? settings.adminElevation : true;
       document.getElementById("settings-admin-elevation").checked = adminElevation;
@@ -36,6 +32,9 @@ export function loadSettings() {
     }
     loadAria2ConfigFromBackend();
     loadAutoDeleteConfigFromBackend();
+    loadUpdateConfigFromBackend();
+    loadMuMuConfigFromBackend();
+    loadDownloadConfigFromBackend();
   } catch (e) {
     console.error("加载设置失败:", e);
   }
@@ -60,11 +59,41 @@ async function loadAutoDeleteConfigFromBackend() {
   }
 }
 
+async function loadUpdateConfigFromBackend() {
+  try {
+    const cfg = await invoke("get_update_config");
+    if (cfg.updateUrl) {
+      document.getElementById("settings-update-url").value = cfg.updateUrl;
+    }
+    document.getElementById("settings-auto-check-update").checked = !!cfg.autoCheckUpdate;
+  } catch (e) {
+    console.error("加载更新配置失败:", e);
+  }
+}
+
+async function loadMuMuConfigFromBackend() {
+  try {
+    const cfg = await invoke("get_mumu_config");
+    document.getElementById("settings-auto-refresh-mumu").checked = !!cfg.autoRefreshMuMu;
+  } catch (e) {
+    console.error("加载 MuMu 配置失败:", e);
+  }
+}
+
+async function loadDownloadConfigFromBackend() {
+  try {
+    const cfg = await invoke("get_download_config");
+    if (cfg.downloadPath) {
+      document.getElementById("settings-download-path").value = cfg.downloadPath;
+    }
+  } catch (e) {
+    console.error("加载下载配置失败:", e);
+  }
+}
+
 export function saveSettings() {
-  const logPath = document.getElementById("settings-log-path").value.trim();
   const downloadPath = document.getElementById("settings-download-path").value.trim();
   const dataDirMode = document.getElementById("settings-data-dir-mode").value;
-  const dataDirCustom = document.getElementById("settings-data-dir-custom").value.trim();
   const adminElevation = document.getElementById("settings-admin-elevation").checked;
   const aria2MaxConnections = parseInt(document.getElementById("settings-aria2-connections").value) || 1;
   const aria2Split = parseInt(document.getElementById("settings-aria2-split").value) || 5;
@@ -73,16 +102,19 @@ export function saveSettings() {
   const updateUrl = document.getElementById("settings-update-url").value.trim();
   const autoCheckUpdate = document.getElementById("settings-auto-check-update").checked;
   const settings = {
-    logPath, downloadPath, dataDirMode, dataDirCustom,
+    downloadPath, dataDirMode,
     adminElevation, aria2MaxConnections, aria2Split, autoDeleteInstaller, autoRefreshMuMu,
     updateUrl, autoCheckUpdate
   };
   localStorage.setItem("mutools_settings", JSON.stringify(settings));
 
-  invoke("save_data_config", { dataDirMode, dataDirCustom }).catch(e => console.error("保存数据目录配置失败:", e));
+  invoke("save_data_config", { dataDirMode }).catch(e => console.error("保存数据目录配置失败:", e));
   invoke("save_admin_elevation", { enabled: adminElevation }).catch(e => console.error("保存管理员提权设置失败:", e));
   invoke("save_aria2_config", { maxConnections: aria2MaxConnections, split: aria2Split }).catch(e => console.error("保存 aria2 配置失败:", e));
   invoke("save_auto_delete_installer", { enabled: autoDeleteInstaller }).catch(e => console.error("保存自动删除设置失败:", e));
+  invoke("save_update_config", { updateUrl, autoCheckUpdate }).catch(e => console.error("保存更新配置失败:", e));
+  invoke("save_mumu_config", { autoRefreshMuMu }).catch(e => console.error("保存 MuMu 配置失败:", e));
+  invoke("save_download_config", { downloadPath }).catch(e => console.error("保存下载目录配置失败:", e));
   // 自动刷新设置变更
   onAutoRefreshSettingChanged();
 
@@ -97,14 +129,6 @@ export function saveSettings() {
     showToast("设置已保存", "success");
   }
 }
-
-export function updateDataDirCustomUI() {
-  const mode = document.getElementById("settings-data-dir-mode").value;
-  const customGroup = document.getElementById("settings-data-dir-custom-group");
-  customGroup.style.display = mode === "custom" ? "" : "none";
-}
-
-// 管理员权限状态
 
 export async function loadAdminStatus() {
   const valueEl = document.getElementById("admin-status-value");
@@ -135,10 +159,5 @@ export function initSettingsPage() {
   const btnCheckUpdate = document.getElementById("btn-check-update");
   if (btnCheckUpdate) {
     btnCheckUpdate.addEventListener("click", () => checkForUpdate(true));
-  }
-
-  const dataDirModeSelect = document.getElementById("settings-data-dir-mode");
-  if (dataDirModeSelect) {
-    dataDirModeSelect.addEventListener("change", updateDataDirCustomUI);
   }
 }

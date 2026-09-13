@@ -251,21 +251,12 @@
             <select id="settings-data-dir-mode" class="form-select combo-select">
               <option value="appdata">AppData</option>
               <option value="exe_dir">运行目录</option>
-              <option value="custom">自定义路径</option>
             </select>
-            <div id="settings-data-dir-custom-group" class="combo-input-group" style="display:none">
-              <input type="text" id="settings-data-dir-custom" class="form-input combo-input"
-                placeholder="输入自定义路径" />
-            </div>
           </div>
         </div>
         <div class="form-group">
-          <label for="settings-log-path">日志保存路径</label>
-          <input type="text" id="settings-log-path" class="form-input" value="./log" />
-        </div>
-        <div class="form-group">
           <label for="settings-download-path">下载保存路径</label>
-          <input type="text" id="settings-download-path" class="form-input" value="./download" />
+          <input type="text" id="settings-download-path" class="form-input" value="" placeholder="下载目录" />
         </div>
         <div class="form-group">
           <label class="toggle-label">

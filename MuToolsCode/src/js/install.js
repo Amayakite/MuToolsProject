@@ -420,12 +420,24 @@ async function doV6LocalInstall(installDir) {
 async function doOnlineInstall(version, path, installDir) {
   let downloadDir = "";
   try {
-    const saved = localStorage.getItem("mutools_settings");
-    if (saved) {
-      const settings = JSON.parse(saved);
-      downloadDir = settings.downloadPath || "./download";
+    // 优先从后端配置读取下载目录
+    const cfg = await invoke("get_download_config");
+    if (cfg && cfg.downloadPath) {
+      downloadDir = cfg.downloadPath;
     }
-  } catch (e) { }
+  } catch (e) {
+    console.error("读取下载目录配置失败:", e);
+  }
+  if (!downloadDir) {
+    // 回退到 localStorage 或默认值
+    try {
+      const saved = localStorage.getItem("mutools_settings");
+      if (saved) {
+        const settings = JSON.parse(saved);
+        downloadDir = settings.downloadPath || "";
+      }
+    } catch (e) { }
+  }
   if (!downloadDir) downloadDir = "./download";
 
   showToast(`正在准备 ${version} 在线安装...`, "info");
