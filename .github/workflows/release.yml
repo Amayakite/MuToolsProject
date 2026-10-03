@@ -1,0 +1,105 @@
+name: Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: MuToolsCode
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: MuToolsCode/package-lock.json
+      - name: Check release version
+        env:
+          RELEASE_REF_TYPE: ${{ github.ref_type }}
+          RELEASE_REF_NAME: ${{ github.ref_name }}
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            import assert from "node:assert/strict";
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            const config = JSON.parse(fs.readFileSync("src-tauri/tauri.conf.json", "utf8"));
+            const cargo = fs.readFileSync("src-tauri/Cargo.toml", "utf8");
+            const version = cargo.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+            assert.equal(pkg.version, config.version, "package.json and Tauri versions must match");
+            assert.equal(version, config.version, "Cargo and Tauri versions must match");
+            if (process.env.RELEASE_REF_TYPE === "tag") {
+              assert.equal(process.env.RELEASE_REF_NAME, "v" + config.version, "Tag must match application version");
+            }
+            console.log("Building MuTools", config.version);
+          '
+      - name: Set up Rust
+        run: |
+          rustup default stable
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          rustup target add x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build Windows installers
+        run: npm run tauri -- build --ci --target x86_64-pc-windows-msvc --bundles nsis,msi -- --locked
+      - name: Collect installers and checksums
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path release-assets -Force | Out-Null
+          $bundle = 'src-tauri/target/x86_64-pc-windows-msvc/release/bundle'
+          foreach ($pattern in @("$bundle/nsis/*.exe", "$bundle/msi/*.msi")) {
+            $files = @(Get-ChildItem -Path $pattern -File -ErrorAction Stop)
+            if ($files.Count -eq 0) { throw "Missing installer: $pattern" }
+            $files | Copy-Item -Destination release-assets
+          }
+          Get-ChildItem release-assets -File | Sort-Object Name | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          } | Set-Content release-assets/SHA256SUMS.txt -Encoding utf8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-installers
+          path: MuToolsCode/release-assets/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-x64-installers
+          path: release-assets
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          args=(--verify-tag --title "MuTools $RELEASE_TAG" --generate-notes)
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$RELEASE_TAG" release-assets/* "${args[@]}"
