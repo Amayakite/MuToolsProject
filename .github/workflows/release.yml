@@ -17,6 +17,8 @@ jobs:
   build:
     runs-on: windows-2022
     timeout-minutes: 60
+    outputs:
+      release_tag: ${{ steps.version.outputs.release_tag }}
     defaults:
       run:
         working-directory: MuToolsCode
@@ -29,6 +31,7 @@ jobs:
           cache: npm
           cache-dependency-path: MuToolsCode/package-lock.json
       - name: Check release version
+        id: version
         env:
           RELEASE_REF_TYPE: ${{ github.ref_type }}
           RELEASE_REF_NAME: ${{ github.ref_name }}
@@ -45,6 +48,7 @@ jobs:
             if (process.env.RELEASE_REF_TYPE === "tag") {
               assert.equal(process.env.RELEASE_REF_NAME, "v" + config.version, "Tag must match application version");
             }
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, "release_tag=v" + config.version + "\n");
             console.log("Building MuTools", config.version);
           '
       - name: Set up Rust
@@ -79,13 +83,16 @@ jobs:
           retention-days: 14
 
   publish:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
           name: windows-x64-installers
@@ -95,10 +102,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ needs.build.outputs.release_tag }}
         run: |
           set -euo pipefail
-          args=(--verify-tag --title "MuTools $RELEASE_TAG" --generate-notes)
+          commit=$(git rev-parse HEAD)
+          args=(--target "$commit" --title "MuTools $RELEASE_TAG" --generate-notes)
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            tagged_commit=$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")
+            if [[ "$tagged_commit" != "$commit" ]]; then
+              echo "Tag $RELEASE_TAG points to a different commit; update the application version before publishing." >&2
+              exit 1
+            fi
+            args+=(--verify-tag)
+          fi
           if [[ "$RELEASE_TAG" == *-* ]]; then
             args+=(--prerelease)
           fi

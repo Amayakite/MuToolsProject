@@ -2,11 +2,13 @@
 
 工作流：`.github/workflows/release.yml`，使用 GitHub 托管的 Windows 2022 x64 runner。
 
-## 先验证打包
+## 手动发布
 
-将工作流推送到默认分支后，在 GitHub 仓库的 **Actions → Windows release → Run workflow** 手动运行。成功后，在该次运行的 Artifacts 中下载 `windows-x64-installers`，包含 NSIS `.exe`、MSI `.msi` 和 `SHA256SUMS.txt`。手动运行不会创建 Release。
+在 GitHub 仓库的 **Actions → Windows release → Run workflow** 选择 `main` 并运行。构建成功后会直接发布 GitHub Release，包含 NSIS `.exe`、MSI `.msi` 和 `SHA256SUMS.txt`。版本取自项目配置，例如 `1.2.0` 对应标签 `v1.2.0`；标签不存在时会创建在本次实际构建的提交上。
 
-## 发布版本
+如果同名标签已指向其他提交，流程会拒绝发布，避免安装包与标签源码不一致。每次新版本发布前应更新项目版本。构建产物也会保留在该次运行的 `windows-x64-installers` Artifact 中。
+
+## 通过版本标签发布
 
 1. 保持 `MuToolsCode/package.json`、`MuToolsCode/src-tauri/Cargo.toml` 和 `MuToolsCode/src-tauri/tauri.conf.json` 的版本一致，并通过 npm/Cargo 正常更新、提交相关锁文件。
 2. 在 Windows 上验证构建产物的安装及主要功能。
